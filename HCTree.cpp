@@ -7,15 +7,17 @@
 
 
 void HCTree::build(const vector<int>& freqs) { 
-    priority_queue<HCNode*, vector<HCNode*>, HCNodePtrComp> pq;
-    for(unsigned int i = 0; i < freqs.size(); i++) { 
+    priority_queue<HCNode*, vector<HCNode*>, HCNodePtrComp> pq;  //intializes min heap priority queue 
+    for(unsigned int i = 0; i < freqs.size(); i++) {         
+        //order characters based on frequencies via min heap 
+        
         if(freqs[i] != 0) { 
             HCNode* curr = new HCNode(freqs[i], static_cast<char>(i)); 
             leaves[i] = curr; 
             pq.push(curr); 
         }
     }
-    while (pq.size() > 1) {
+    while (pq.size() > 1) { // goes through each leaf node(characters) of priority and builds a huffman tree 
         HCNode* left = pq.top();
         pq.pop();
         HCNode* right = pq.top();
@@ -33,7 +35,7 @@ void HCTree::build(const vector<int>& freqs) {
         root = pq.top();
     }
 }
-
+//recursively deletes tree
 void deleteTree(HCNode* node) {
     if (node) {
         deleteTree(node->c0);
@@ -58,6 +60,7 @@ void HCTree::encode(unsigned char symbol, FancyOutputStream & out) const {
     HCNode* curr = leaves[symbol]; 
     string code = ""; 
 
+    // goes through HFT and appends 0 or 1 based on left/right traversal 
     while (curr != root) { 
         if(curr->p->c0 == curr) { 
             code = '0' + code; 
@@ -67,6 +70,7 @@ void HCTree::encode(unsigned char symbol, FancyOutputStream & out) const {
         curr = curr->p; 
     }
 
+    //writes encoded text to the output file
     int toInt = 0; 
     for(unsigned int i = 0; i < code.length(); i++) { 
         toInt = code[i] - '0'; // turn into integer 0 or 1
@@ -74,8 +78,12 @@ void HCTree::encode(unsigned char symbol, FancyOutputStream & out) const {
     }
 }
 
+/**
+  * Write to the given FancyInputSteam the decoded text file.
+  */
 unsigned char HCTree::decode(FancyInputStream & in) const { 
     HCNode* curr = root; 
+    // traverses through HFT to get to desired leaf node(character)
     while(curr->c0 != nullptr && curr->c1 != nullptr) { 
         if(in.read_bit() == 0){ 
             curr = curr->c0;
